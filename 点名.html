@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点名系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .button {
+            margin: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+        #summary {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>点名系统</h1>
+    <div id="home">
+        <button class="button" onclick="startRollCall()">开始点名</button>
+        <button class="button" onclick="showHistory()">历史记录</button>
+    </div>
+
+    <div id="rollCall" class="hidden">
+        <h2 id="studentName"></h2>
+        <div>
+            <button class="button" onclick="nextStudent()">下一个</button>
+            <button class="button" onclick="recordPresence('请假')">请假</button>
+            <button class="button" onclick="recordPresence('迟到')">迟到</button>
+            <button class="button" onclick="confirm()">返回/确认</button>
+        </div>
+    </div>
+
+    <div id="summary" class="hidden">
+        <h2>点名总结</h2>
+        <p>正常: <span id="normal"></span></p>
+        <p>请假: <span id="leave"></span></p>
+        <p>迟到: <span id="late"></span></p>
+        <button class="button" onclick="goBack()">返回主页</button>
+    </div>
+
+    <script>
+        // 学生名单（手动添加）
+        const students = [
+            { name: "王远霞", id: "001" },
+            { name: "陈浩", id: "002" },
+            { name: "周游", id: "003" },
+            { name: "何佳", id: "004" },
+            { name: "丁秋雨", id: "005" },
+            { name: "胡从宇", id: "006" },
+            { name: "陈代银", id: "007" },
+            { name: "王琪龙", id: "008" },
+            { name: "鲁家煊", id: "009" },
+            { name: "石浩然", id: "010" },
+            { name: "顾琛", id: "011" },
+            { name: "刘超", id: "012" },
+            { name: "金思雨", id: "013" },
+            { name: "胡晨露", id: "014" },
+            { name: "杨邓", id: "015" },
+            { name: "李珍", id: "016" },
+            { name: "肖乐怡", id: "017" },
+            { name: "王嘉云", id: "018" },
+            { name: "李晶晶", id: "019" },
+            { name: "李偲", id: "020" },
+            { name: "陈嫣然", id: "021" },
+            { name: "朱紫枫", id: "022" },
+            { name: "倪言", id: "023" },
+            { name: "梁文静", id: "024" },
+            { name: "熊靓颖", id: "025" },
+            { name: "候佑嵘", id: "026" },
+            { name: "葛超", id: "027" },
+            { name: "郑明荣", id: "028" },
+            { name: "郭可佳", id: "029" },
+            { name: "王俊茹", id: "030" },
+            { name: "林新雨", id: "031" },
+            { name: "李含冰", id: "032" },
+            { name: "黄凯", id: "033" },
+            // 可以在这里添加更多的学生
+        ];
+
+        let currentIndex = 0; 
+        let presenceRecord = { "正常": [], "请假": [], "迟到": [] };
+
+        function startRollCall() {
+            document.getElementById('home').classList.add('hidden');
+            document.getElementById('rollCall').classList.remove('hidden');
+            currentIndex = 0;
+            showCurrentStudent();
+        }
+
+        function showCurrentStudent() {
+            if (currentIndex < students.length) {
+                document.getElementById('studentName').innerText = students[currentIndex].name;
+            } else {
+                alert("已结束点名！");
+                confirm();
+            }
+        }
+
+        function nextStudent() {
+            currentIndex++;
+            showCurrentStudent();
+        }
+
+        function recordPresence(type) {
+            const name = students[currentIndex].name;
+            presenceRecord[type].push(name);
+            nextStudent();
+        }
+
+        function confirm() {
+            document.getElementById('rollCall').classList.add('hidden');
+            showSummary();
+        }
+
+        function showSummary() {
+            document.getElementById('normal').innerText = presenceRecord["正常"].join(", ");
+            document.getElementById('leave').innerText = presenceRecord["请假"].join(", ");
+            document.getElementById('late').innerText = presenceRecord["迟到"].join(", ");
+            document.getElementById('summary').classList.remove('hidden');
+        }
+
+        function goBack() {
+            document.getElementById('summary').classList.add('hidden');
+            document.getElementById('home').classList.remove('hidden');
+            // 重置记录
+            currentIndex = 0;
+            presenceRecord = { "正常": [], "请假": [], "迟到": [] };
+        }
+
+        function showHistory() {
+            alert("历史记录功能尚未实现。");
+        }
+    </script>
+</body>
+</html>
