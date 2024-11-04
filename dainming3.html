@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点名系统</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .hidden {
+            display: none;
+        }
+        .button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            margin: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        #summary, #randomSelectionContainer, #multiDrawContainer {
+            margin-top: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .stats {
+            margin-top: 10px;
+            color: #333;
+        }
+        .student-checkbox {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>点名系统</h1>
+        <div id="home">
+            <button class="button" onclick="startRollCall()">开始点名</button>
+            <button class="button" onclick="showHistory()">历史记录</button>
+            <button class="button" onclick="jumpToSchool()">跳转到学校</button>
+            <button class="button" onclick="showRandomSelection()">随机点名</button>
+            <button class="button" onclick="showMultiDraw()">复杂抽人</button>
+        </div>
+
+        <div id="rollCall" class="hidden">
+            <h2 id="studentName"></h2>
+            <div>
+                <button class="button" onclick="nextStudent()">下一个</button>
+                <button class="button" onclick="recordPresence('请假')">请假</button>
+                <button class="button" onclick="recordPresence('迟到')">迟到</button>
+                <button class="button" onclick="confirm()">返回/确认</button>
+            </div>
+        </div>
+
+        <div id="summary" class="hidden">
+            <h2>点名总结</h2>
+            <p class="stats">正常: <span id="normal"></span></p>
+            <p class="stats">请假: <span id="leave"></span> (总人数: <span id="leaveCount"></span>)</p>
+            <p class="stats">迟到: <span id="late"></span> (总人数: <span id="lateCount"></span>)</p>
+            <button class="button" onclick="goBack()">返回主页</button>
+        </div>
+
+        <div id="randomSelectionContainer" class="hidden">
+            <h2>随机点名</h2>
+            <button class="button" onclick="randomDraw()">进行随机点名</button>
+            <p>已选择：<span id="randomResult"></span></p>
+            <button class="button" onclick="goBack()">返回主页</button>
+        </div>
+
+        <div id="multiDrawContainer" class="hidden">
+            <h2>复杂抽人</h2>
+            <p>选择要抽取的人:</p>
+            <div id="studentCheckboxes"></div>
+            <input type="number" id="drawCount" placeholder="抽取人数" min="1" />
+            <button class="button" onclick="multiDraw()">抽取</button>
+            <p>结果: <span id="multiDrawResult"></span></p>
+            <button class="button" onclick="goBack()">返回主页</button>
+        </div>
+    </div>
+
+    <script>
+        const students = [
+            { name: "王远霞", id: "001" },
+            { name: "陈浩", id: "002" },
+            { name: "周游", id: "003" },
+            { name: "何佳", id: "004" },
+            { name: "丁秋雨", id: "005" },
+            { name: "胡从宇", id: "006" },
+            { name: "陈代银", id: "007" },
+            { name: "王琪龙", id: "008" },
+            { name: "鲁家煊", id: "009" },
+            { name: "石浩然", id: "010" },
+            { name: "顾琛", id: "011" },
+            { name: "刘超", id: "012" },
+            { name: "金思雨", id: "013" },
+            { name: "胡晨露", id: "014" },
+            { name: "杨邓", id: "015" },
+            { name: "李珍", id: "016" },
+            { name: "肖乐怡", id: "017" },
+            { name: "王嘉云", id: "018" },
+            { name: "李晶晶", id: "019" },
+            { name: "李偲", id: "020" },
+            { name: "陈嫣然", id: "021" },
+            { name: "朱紫枫", id: "022" },
+            { name: "倪言", id: "023" },
+            { name: "梁文静", id: "024" },
+            { name: "熊靓颖", id: "025" },
+            { name: "候佑嵘", id: "026" },
+            { name: "葛超", id: "027" },
+            { name: "郑明荣", id: "028" },
+            { name: "郭可佳", id: "029" },
+            { name: "王俊茹", id: "030" },
+            { name: "林新雨", id: "031" },
+            { name: "李含冰", id: "032" },
+            { name: "黄凯", id: "033" },
+            // 可以在这里添加更多的学生
+        ];
+
+        let currentIndex = 0;
+        let presenceRecord = { "正常": [], "请假": [], "迟到": [] };
+
+        function startRollCall() {
+            document.getElementById('home').classList.add('hidden');
+            document.getElementById('rollCall').classList.remove('hidden');
+            currentIndex = 0;
+            showCurrentStudent();
+        }
+
+        function showCurrentStudent() {
+            if (currentIndex < students.length) {
+                document.getElementById('studentName').innerText = students[currentIndex].name;
+            } else {
+                alert("已结束点名！");
+                confirm();
+            }
+        }
+
+        function nextStudent() {
+            currentIndex++;
+            showCurrentStudent();
+        }
+
+        function recordPresence(type) {
+            const name = students[currentIndex].name;
+            presenceRecord[type].push(name);
+            nextStudent();
+        }
+
+        function confirm() {
+            document.getElementById('rollCall').classList.add('hidden');
+            showSummary();
+        }
+
+        function showSummary() {
+            const totalCount = students.length;
+            const leaveCount = presenceRecord["请假"].length;
+            const lateCount = presenceRecord["迟到"].length;
+
+            document.getElementById('normal').innerText = totalCount - leaveCount - lateCount;
+            document.getElementById('leave').innerText = presenceRecord["请假"].join(", ");
+            document.getElementById('leaveCount').innerText = leaveCount;
+            document.getElementById('late').innerText = presenceRecord["迟到"].join(", ");
+            document.getElementById('lateCount').innerText = lateCount;
+            document.getElementById('summary').classList.remove('hidden');
+
+            // 记录历史，简化显示内容
+            localStorage.setItem("attendanceHistory", JSON.stringify(presenceRecord));
+        }
+
+        function goBack() {
+            document.getElementById('summary').classList.add('hidden');
+            document.getElementById('rollCall').classList.add('hidden');
+            document.getElementById('randomSelectionContainer').classList.add('hidden');
+            document.getElementById('multiDrawContainer').classList.add('hidden');
+            document.getElementById('home').classList.remove('hidden');
+            resetRecords();
+        }
+
+        function resetRecords() {
+            currentIndex = 0;
+            presenceRecord = { "正常": [], "请假": [], "迟到": [] };
+        }
+
+        function showHistory() {
+            let history = localStorage.getItem("attendanceHistory");
+            history = history ? JSON.parse(history) : "没有历史记录。";
+            alert("历史记录:\n" + JSON.stringify(history));
+        }
+
+        function jumpToSchool() {
+            window.open("https://xs.whggvc.net/scloudapp/#/pages/service/courseScheduleQuery/courseScheduleQuery", "_blank");
+        }
+
+        function showRandomSelection() {
+            document.getElementById('randomSelectionContainer').classList.remove('hidden');
+            document.getElementById('randomResult').innerText = "";
+        }
+
+        function randomDraw() {
+            const count = Math.min(students.length, 2);  // 限制随机点名的人数，不超过学生人数
+            const shuffled = students.sort(() => 0.5 - Math.random()).slice(0, count);
+            document.getElementById('randomResult').innerText = shuffled.map(s => s.name).join(", ");
+        }
+
+        function showMultiDraw() {
+            document.getElementById('multiDrawContainer').classList.remove('hidden');
+            renderStudentCheckboxes();
+            document.getElementById('multiDrawResult').innerText = "";
+        }
+
+        function renderStudentCheckboxes() {
+            const container = document.getElementById('studentCheckboxes');
+            container.innerHTML = "";
+            students.forEach((student, index) => {
+                const checkboxDiv = document.createElement("div");
+                checkboxDiv.className = "student-checkbox";
+                checkboxDiv.innerHTML = `<input type="checkbox" id="student-${index}" value="${student.name}"> ${student.name}`;
+                container.appendChild(checkboxDiv);
+            });
+        }
+
+        function multiDraw() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const drawCount = parseInt(document.getElementById('drawCount').value);
+            const selectedStudents = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedStudents.length === 0) {
+                alert("请至少选择一名学生。");
+                return;
+            }
+            const count = Math.min(drawCount, selectedStudents.length);
+            const shuffled = selectedStudents.sort(() => 0.5 - Math.random()).slice(0, count);
+            document.getElementById('multiDrawResult').innerText = shuffled.join(", ");
+        }
+    </script>
+</body>
+</html>
