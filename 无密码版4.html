@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录与点名系统</title>
+    <style>
+        body {
+            background: url(../img/登录背景.jpg) no-repeat center center fixed;
+            background-size: cover;
+            font-family: Arial, sans-serif;
+        }
+
+        .container {
+            margin: 50px auto;
+            width: 400px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            text-align: center;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            color: #0056b3; /* 主题颜色 */
+        }
+
+        /* 时间框样式 */
+        #timeBox {
+            position: absolute;
+            top: -45px;  /* 离登录框顶部 43px */
+            left: 50%;/* 从50%改为40%，使它向左移动 */
+            transform: translateX(-50%);/* 向左平移更多 */
+            font-size: 25px;
+            background-color: rgba(0, 0, 0, 0.3);/* 背景色改为黑色，透明度为40% */
+            color: white;/* 保持文本颜色为白色 */
+            padding: 5px 20px;
+            border-radius: 7px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;  /* 平滑的过渡效果 */
+        }
+
+        /* 鼠标悬停时，增加阴影效果 */
+        #timeBox:hover {
+            box-shadow: 0 7px 10px rgba(0, 0, 0, 0.3); /* 鼠标悬停时的阴影效果 */
+        }
+
+
+        /* 时间框样式 */
+        #timeBox2 {
+            position: absolute;
+            top: -45px;  /* 离登录框顶部 43px */
+            left: 50%;/* 从50%改为40%，使它向左移动 */
+            transform: translateX(-50%);/* 向左平移更多 */
+            font-size: 25px;
+            background-color: rgba(0, 0, 0, 0.3);/* 背景色改为黑色，透明度为40% */
+            color: white;/* 保持文本颜色为白色 */
+            padding: 5px 20px;
+            border-radius: 7px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;  /* 平滑的过渡效果 */
+        }
+
+        /* 鼠标悬停时，增加阴影效果 */
+        #timeBox2:hover {
+            box-shadow: 0 7px 10px rgba(0, 0, 0, 0.3); /* 鼠标悬停时的阴影效果 */
+        }
+
+        input[type="text"], input[type="password"], input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            border: 1px solid #007BFF; /* 输入框边框颜色 */
+            border-radius: 4px;
+        }
+
+        input[type="submit"], .button {
+            background-color: #007BFF; /* 按钮背景颜色 */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-bottom: 10px; /* 增加间隔 */
+        }
+
+        input[type="submit"]:hover, .button:hover {
+            background-color: #0056b3; /* 按钮悬停颜色 */
+        }
+
+        .error-message {
+            color: red;
+            margin-bottom: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .stats {
+            margin-top: 10px;
+            color: #333; /* 统计信息颜色 */
+        }
+
+        #historyContainer {
+            margin-top: 20px;
+            text-align: left;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+        }
+
+        .copyButton, .customTemplateButton {
+            background-color: #007BFF; /* 自定义按钮颜色 */
+            margin-top: 10px;
+            color: white; /* 文字颜色 */
+        }
+
+        .textArea {
+            width: 100%;
+            height: 50px;
+        }
+
+        #templateArea {
+            resize: none; /* 防止调整大小影响布局 */
+        }
+
+        /* 新增功能页面样式 */
+        .function-container {
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.8);
+            display: none; /* 初始隐藏 */
+        }
+
+        .function-container.active {
+            display: block; /* 显示激活的功能页面 */
+        }
+
+        /* 复杂抽人页面额外样式 */
+        .student-checkbox {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+
+        .checkbox-label {
+            margin-left: 10px; /* 间距以对齐文本 */
+        }
+
+        /* 点名系统容器样式 */
+        #rollCallContainer {
+            position: relative;
+            padding-top: 140px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 初始阴影 */
+            transition: box-shadow 0.3s ease;  /* 平滑的过渡效果 */
+        }
+
+        /* 鼠标悬停时，增加阴影效果 */
+        #rollCallContainer:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* 鼠标悬停时的阴影效果 */
+        }
+
+        /* 登陆界面容器样式 */
+        #container {
+            position: relative;
+            padding-top: 140px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 初始阴影 */
+            transition: box-shadow 0.3s ease;  /* 平滑的过渡效果 */
+        }
+
+        /* 鼠标悬停时，增加阴影效果 */
+        #container:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* 鼠标悬停时的阴影效果 */
+        }
+
+        /* 返回按钮的样式 */
+        #rollCallTitleButton {
+            position: absolute;
+            top: 40px;
+            left: 130px;
+            background-color: #fff;
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            margin: 0;
+            font-size: 32px;
+            color: #0056b3;
+            font-family: 'Arial', sans-serif;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.3s ease; /* 平滑过渡效果 */
+        }
+
+        /* 鼠标悬停时的按钮样式 */
+        #rollCallTitleButton:hover {
+            background-color: #0056b3; /* 按钮悬停背景色 */
+            color: white;
+            transform: scale(1.1); /* 鼠标悬停时放大效果 */
+        }
+
+ /* 账密界面容器样式 */
+        #username {
+            position: relative;
+            padding-top: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 初始阴影 */
+            transition: box-shadow 0.3s ease;  /* 平滑的过渡效果 */
+        }
+
+        /* 鼠标悬停时，增加阴影效果 */
+        #username:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* 鼠标悬停时的阴影效果 */
+        }
+
+ /* 账密界面容器样式 */
+        #password {
+            position: relative;
+            padding-top: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 初始阴影 */
+            transition: box-shadow 0.3s ease;  /* 平滑的过渡效果 */
+        }
+
+        /* 鼠标悬停时，增加阴影效果 */
+        #password:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* 鼠标悬停时的阴影效果 */
+        }
+
+ /* 账密界面容器样式 */
+        #loginTitle {
+            position: relative;
+            padding-top: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 初始阴影 */
+            transition: box-shadow 0.3s ease;  /* 平滑的过渡效果 */
+        }
+
+        /* 鼠标悬停时，增加阴影效果 */
+        #loginTitle:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* 鼠标悬停时的阴影效果 */
+        }
+
+ /* 返回按钮的样式 */
+        #logintietie {
+            position: absolute;
+            top: 40px;
+            left: 90px;
+            background-color: #fff;
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            margin: 0;
+            font-size: 32px;
+            color: #0056b3;
+            font-family: 'Arial', sans-serif;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s, transform 0.3s ease; /* 平滑过渡效果 */
+        }
+
+        /* 鼠标悬停时的按钮样式 */
+        #logintietie:hover {
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* 鼠标悬停时的阴影效果 */
+            transform: scale(1.1); /* 鼠标悬停时放大效果 */
+        }
+
+/* 给整个登录容器添加阴影 */
+#loginContainer {
+    position: relative;
+    padding-top: 100px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); /* 给容器添加阴影 */
+    transition: box-shadow 0.3s ease;  /* 添加平滑过渡效果 */
+}
+
+/* 鼠标悬停时阴影效果变大 */
+#loginContainer:hover {
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* 鼠标悬停时的阴影效果 */
+}
+
+    </style>
+</head>
+<body>
+
+
+    <div id="loginContainer" class="container" style="position: relative; padding-top: 100px;">
+    <!-- 时间框 -->
+    <div id="timeBox"></div> <!-- 时间框 -->
+    <!-- 固定在模块内，按钮上方 -->
+    <h2 id="logintietie" style="position: absolute; top: 25px; left: 140px; background-color: #fff; padding: 10px 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 1000; margin: 0;">
+         登录界面</h2>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="用户名" required>
+            <input type="password" id="password" placeholder="密码" required>
+            <div id="errorMessage" class="error-message"></div>
+            <input type="submit" value="登录">
+        </form>
+    </div>
+
+<script>
+    // 更新当前时间函数
+    function updateTime() {
+        const timeBox = document.getElementById("timeBox");
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, "0");
+        const minutes = now.getMinutes().toString().padStart(2, "0");
+        const seconds = now.getSeconds().toString().padStart(2, "0");
+        timeBox.textContent = `${hours}:${minutes}:${seconds}`; // 显示时间
+    }
+
+    // 每秒更新一次时间
+    setInterval(updateTime, 1000);
+    updateTime(); // 页面加载时立即显示时间
+</script>
+
+
+<div id="rollCallContainer" class="container hidden" style="position: relative; padding-top: 140px;">
+    <!-- 时间框 -->
+    <div id="timeBox2"></div> <!-- 时间框 -->
+    <!-- 将“点名系统”标题改为按钮，点击返回主页 -->
+    <button id="rollCallTitleButton" class="button" onclick="goBack()" style="position: absolute; top: 40px; left: 135px; background-color: #fff; padding: 10px 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 1000; margin: 0; font-size: 32px; color: #0056b3; font-family: 'Arial', sans-serif; border: none; cursor: pointer; font-weight: bold;">
+        点名系统
+    </button>
+
+<script>
+    document.getElementById('rollCallTitleButton').addEventListener('mouseover', function() {
+        this.style.backgroundColor = '#0056b3'; /* 悬停时背景色 */
+        this.style.color = '#fff'; /* 悬停时文字颜色 */
+        this.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.2)'; /* 悬停时阴影效果 */
+    });
+
+    document.getElementById('rollCallTitleButton').addEventListener('mouseout', function() {
+        this.style.backgroundColor = '#fff'; /* 鼠标离开时背景色恢复 */
+        this.style.color = '#0056b3'; /* 鼠标离开时文字颜色恢复 */
+        this.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)'; /* 鼠标离开时阴影恢复 */
+    });
+</script>
+
+<script>
+    // 更新当前时间函数
+    function updateTime() {
+        const timeBox = document.getElementById("timeBox2");
+        const now = new Date();
+        const hours = now.getHours().toString().padStart(2, "0");
+        const minutes = now.getMinutes().toString().padStart(2, "0");
+        const seconds = now.getSeconds().toString().padStart(2, "0");
+        timeBox.textContent = `${hours}:${minutes}:${seconds}`; // 显示时间
+    }
+
+    // 每秒更新一次时间
+    setInterval(updateTime, 1000);
+    updateTime(); // 页面加载时立即显示时间
+</script>
+
+
+        <div id="home">
+            <button class="button" onclick="startRollCall()">开始点名</button>
+            <button class="button" onclick="showHistory()">历史记录</button>
+            <button class="button" onclick="jumpToSchool()">跳转到学校</button>
+            <button class="button" onclick="showRandomSelection()">随机点名</button>
+            <button class="button" onclick="showMultiDraw()">复杂抽人</button>
+        </div>
+        
+        <div id="rollCall" class="function-container" style="position: relative; padding-top: 90px;">
+    <!-- 固定在模块内，按钮上方 -->
+    <h2 style="position: absolute; top: 10px; left: 15px; background-color: #fff; padding: 10px 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 1000; margin: 0;">
+        正在点名: <span id="studentName"></span>
+    </h2>
+            <div>
+                <button class="button" onclick="nextStudent()">下一个</button>
+                <button class="button" onclick="recordPresence('请假')">请假</button>
+                <button class="button" onclick="recordPresence('迟到')">迟到</button>
+                <button class="button" onclick="confirm()">返回/确认</button>
+            </div>
+        </div>
+
+        <div id="summary" class="function-container">
+            <h2>点名总结</h2>
+
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>点名总结</title>
+    <style>
+        /* 整体总结页样式 */
+        #summary {
+            text-align: left;  /* 确保整个总结页的文本左对齐 */
+            margin-left: 0;  /* 去掉左边的居中效果 */
+            padding-left: 15px;  /* 给总结页的左边加一点内边距 */
+            font-family: Arial, sans-serif;  /* 设置字体 */
+            font-size: 16px;
+            width: 100%;  /* 容器宽度占满页面 */
+        }
+
+        /* 每一项统计信息的样式 */
+        #summary p {
+            margin-bottom: 10px;  /* 每个统计项之间的间距 */
+        }
+
+        /* 每个统计项内的数值部分加粗 */
+        #summary span {
+            font-weight: bold;  /* 突出显示数字 */
+        }
+
+        /* 响应式布局：当屏幕宽度小于768px时 */
+        @media (max-width: 768px) {
+            #summary {
+                padding-left: 10px;  /* 缩小屏幕时的左内边距 */
+            }
+
+            #summary p {
+                font-size: 14px;  /* 在小屏幕上调整字体大小 */
+            }
+        }
+    </style>
+</head>
+<body>
+
+            <p class="stats">正常: <span id="normal"></span></p>
+            <p class="stats">请假: <span id="leave"></span> (总人数: <span id="leaveCount"></span>)</p>
+            <p class="stats">迟到: <span id="late"></span> (总人数: <span id="lateCount"></span>)</p>
+            <button class="button" onclick="goBack()">返回主页</button>
+        </div>
+
+<div id="randomSelectionContainer" class="function-container" style="position: relative; padding-top: 90px;">
+    <!-- 固定在模块内，按钮上方 -->
+    <h2 style="position: absolute; top: 10px; left: 130px; background-color: #fff; padding: 10px 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 1000; margin: 0;">
+        随机点名</h2>
+
+            <button class="button" onclick="randomDraw()">进行随机点名</button>
+            <p>已选择：<span id="randomResult"></span></p>
+            <button class="button" onclick="goBack()">返回主页</button>
+        </div>
+
+        <div id="multiDrawContainer" class="function-container" style="position: relative; padding-top: 90px;">
+    <!-- 固定在模块内，按钮上方 -->
+    <h2 style="position: absolute; top: 10px; left: 130px; background-color: #fff; padding: 10px 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 1000; margin: 0;">
+        复杂抽人</h2>
+
+            <button class="button" onclick="selectAll()">全选/取消全选</button>
+            <p>选择要抽取的人:</p>
+            <div id="studentCheckboxes"></div>
+            <input type="number" id="drawCount" placeholder="抽取人数" min="1" />
+            <button class="button" onclick="multiDraw()">抽取</button>
+            <p>结果: <span id="multiDrawResult"></span></p>
+            <button class="button" onclick="goBack()">返回主页</button>
+        </div>
+
+<div id="historyContainer" class="function-container" style="position: relative; padding-top: 70px;">
+    <!-- 固定在模块内，标题上方 -->
+    <h2 style="position: absolute; top: 15px; left: 17px; background-color: #fff; padding: 10px 20px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); z-index: 1000; margin: 0; width: auto;">
+            历史记录</h2>
+            <div id="historyList"></div>
+            <div id="recordTemplate">
+                <button class="copyButton" onclick="copyHistory()">复制记录</button>
+                <button class="customTemplateButton" onclick="showCustomTemplate()">设置自定义模板</button>
+                <textarea id="templateArea" class="textArea" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+<script>
+// 默认允许任意密码进入系统
+let allowAnyPassword = true;
+let loginAttempts = 0;
+
+document.getElementById("loginForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    var username = document.getElementById("username").value;
+    var password = document.getElementById("password").value;
+
+    // 检查用户名和密码是否为空
+    if (!username || !password) {
+        document.getElementById("errorMessage").textContent = "请输入有效的用户名和密码。";
+        return;
+    }
+
+    // 假设是硬编码的用户名和密码
+    if (username === "admin" && password === "123456") {
+        // 登录成功，跳转到点名系统
+        document.getElementById("loginContainer").classList.add("hidden");
+        document.getElementById("rollCallContainer").classList.remove("hidden");
+        resetRecords(); // 重置记录
+        loginAttempts = 0; // 重置登录尝试次数
+    } else {
+        if (allowAnyPassword) {
+            // 如果启用了任意密码功能，即使密码错误，仍然跳转系统并弹出提示框
+            loginAttempts++;
+            if (loginAttempts <= 3) {
+                // 弹出密码错误提示框（最多弹出 3 次）
+                alert("用户名或密码错误，请联系管理员要正确密码哦。尝试 " + loginAttempts + " 次");
+            } else {
+                document.getElementById("errorMessage").textContent = "多次密码错误，请稍后再试。";
+                return;  // 限制继续登录
+            }
+
+            // 任意密码仍然进入系统
+            document.getElementById("loginContainer").classList.add("hidden");
+            document.getElementById("rollCallContainer").classList.remove("hidden");
+            resetRecords(); // 重置记录
+        } else {
+            // 如果没有启用任意密码功能，只有正确密码才允许进入系统
+            document.getElementById("errorMessage").textContent = "用户名或密码错误。";
+        }
+    }
+});
+
+// 点名系统相关逻辑
+const students = [
+    { name: "王远霞" },
+    { name: "陈浩" },
+    { name: "周游" },
+    { name: "何佳" },
+    { name: "丁秋雨" }
+];
+
+students.push(
+          { name: "胡从宇" },
+            { name: "陈代银" },
+            { name: "王琪龙" },
+            { name: "鲁家煊" },
+            { name: "石浩然" },
+            { name: "顾琛" },
+            { name: "刘超" },
+            { name: "金思雨" },
+            { name: "胡晨露" },
+            { name: "杨邓" },
+            { name: "李珍" },
+            { name: "肖乐怡" },
+            { name: "王嘉云" },
+            { name: "李晶晶" },
+            { name: "李偲" },
+            { name: "陈嫣然" },
+            { name: "朱紫枫" },
+            { name: "倪言" },
+            { name: "梁文静" },
+            { name: "熊靓颖" },
+            { name: "候佑嵘" },
+            { name: "葛超" },
+            { name: "郑明荣" },
+            { name: "郭可佳" },
+            { name: "王俊茹" },
+            { name: "林新雨" },
+            { name: "李含冰" },
+            { name: "黄凯" },
+);
+
+let currentIndex = 0;
+let presenceRecord = { "正常": [], "请假": [], "迟到": [] };
+let historyRecords = JSON.parse(localStorage.getItem("attendanceHistory")) || [];
+
+function startRollCall() {
+    hideAllFunctionContainers();
+    document.getElementById('rollCall').classList.add('active');
+    currentIndex = 0;
+    showCurrentStudent();
+}
+
+function showCurrentStudent() {
+    if (currentIndex < students.length) {
+        document.getElementById('studentName').innerText = students[currentIndex].name;
+    } else {
+        alert("已结束点名！");
+        // 处理结束后的行为，可以清空当前页面或提示用户
+               confirm();
+            }
+        }
+
+
+function hideAllFunctionContainers() {
+    const containers = document.querySelectorAll('.function-container');
+    containers.forEach(container => container.classList.remove('active'));
+}
+
+function nextStudent() {
+    currentIndex++;
+    showCurrentStudent();
+}
+
+function recordPresence(type) {
+    const name = students[currentIndex].name;
+    presenceRecord[type].push(name);// 请假或迟到
+    nextStudent();
+}
+
+function confirm() {
+    hideAllFunctionContainers();
+    saveToHistory();// 保存历史记录
+    showSummary();// 显示点名总结
+}
+
+function saveToHistory() {
+    // 获取当前 UTC 时间并转换为北京时间（UTC+8）
+    const timestamp = new Date();
+    timestamp.setHours(timestamp.getHours() + 8); // 将时间调整为北京时间
+    const formattedTimestamp = timestamp.toISOString().slice(0, 19).replace("T", " ");  // 格式化时间，去掉时区标识
+
+    const normalCount = students.length - presenceRecord['请假'].length - presenceRecord['迟到'].length;
+
+    console.log("normalCount:", normalCount);  // 输出正常人数
+    console.log("presenceRecord:", presenceRecord);  // 输出请假、迟到记录
+
+    const record = {
+        time: formattedTimestamp,  // 保存北京时间的时间戳
+        normal: normalCount,
+        leave: presenceRecord['请假'],
+        late: presenceRecord['迟到']
+    };
+
+    historyRecords.push(record);
+    if (historyRecords.length > 6) {
+        historyRecords.shift(); // 移除最旧记录
+    }
+
+    // 存储历史记录到 localStorage
+    localStorage.setItem("attendanceHistory", JSON.stringify(historyRecords));
+
+    // 渲染历史记录
+    renderHistory();
+
+    // 重置记录
+    resetRecords();
+}
+
+function renderHistory() {
+    const historyList = document.getElementById('historyList');
+    historyList.innerHTML = historyRecords.map(record => `
+        <div>
+            ${record.time} - 正常: ${record.normal}, 请假: ${record.leave.join(", ")}, 迟到: ${record.late.join(", ")}
+        </div>
+    `).join("");
+}
+function showSummary() {
+    const totalCount = students.length;
+
+    // 获取最新的点名记录（假设历史记录按时间排列）
+    const latestRecord = historyRecords.reverse()[0];
+
+    const leaveCount = latestRecord.leave.length;
+    const lateCount = latestRecord.late.length;
+
+    // 显示正常人数（总人数 - 请假 - 迟到）
+    document.getElementById('normal').innerText = totalCount - leaveCount - lateCount;
+
+    // 显示请假学生列表（检查是否有请假学生）
+    if (latestRecord.leave.length > 0) {
+        document.getElementById('leave').innerText = latestRecord.leave.join(", ");
+    } else {
+        document.getElementById('leave').innerText = "无";
+    }
+
+    // 显示请假人数
+    document.getElementById('leaveCount').innerText = leaveCount;
+
+    // 显示迟到学生列表（检查是否有迟到学生）
+    if (latestRecord.late.length > 0) {
+        document.getElementById('late').innerText = latestRecord.late.join(", ");
+    } else {
+        document.getElementById('late').innerText = "无";
+    }
+
+    // 显示迟到人数
+    document.getElementById('lateCount').innerText = lateCount;
+
+    // 显示总结页
+    document.getElementById('summary').classList.add('active');
+}
+
+function goBack() {
+    hideAllFunctionContainers();
+    resetRecords();
+    document.getElementById('home').classList.remove('hidden');
+}
+
+function resetRecords() {
+    currentIndex = 0;
+    presenceRecord = { "正常": [], "请假": [], "迟到": [] };
+}
+
+function showHistory() {
+    hideAllFunctionContainers();
+    document.getElementById('historyContainer').classList.add('active');
+    renderHistory();
+}
+
+function jumpToSchool() {
+    hideAllFunctionContainers();
+    window.open("https://xs.whggvc.net/scloudapp/#/pages/service/courseScheduleQuery/courseScheduleQuery", "_blank");
+}
+
+        function showRandomSelection() {
+            hideAllFunctionContainers();
+            document.getElementById('randomSelectionContainer').classList.add('active');
+            document.getElementById('randomResult').innerText = "";
+        }
+
+        function randomDraw() {
+            const shuffled = students.sort(() => 0.5 - Math.random()).slice(0, 2);
+            document.getElementById('randomResult').innerText = shuffled.map(s => s.name).join(", ");
+        }
+
+        function showMultiDraw() {
+            hideAllFunctionContainers();
+            document.getElementById('multiDrawContainer').classList.add('active');
+            renderStudentCheckboxes();
+            document.getElementById('multiDrawResult').innerText = "";
+        }
+
+        function renderStudentCheckboxes() {
+            const container = document.getElementById('studentCheckboxes');
+            container.innerHTML = "";
+            students.forEach((student, index) => {
+                const checkboxDiv = document.createElement("div");
+                checkboxDiv.className = "student-checkbox";
+                checkboxDiv.innerHTML = `
+                    <input type="checkbox" id="student-${index}" value="${student.name}">
+                    <label for="student-${index}" class="checkbox-label">${student.name}</label>
+                `;
+                container.appendChild(checkboxDiv);
+            });
+        }
+
+        function selectAll() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            const allChecked = Array.from(checkboxes).every(chk => chk.checked);
+            checkboxes.forEach(chk => {
+                chk.checked = !allChecked; // 切换状态
+            });
+        }
+
+        function multiDraw() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            const drawCount = parseInt(document.getElementById('drawCount').value);
+            const selectedStudents = Array.from(checkboxes).map(cb => cb.value);
+
+            if (selectedStudents.length === 0) {
+                alert("请至少选择一名学生。");
+                return;
+            }
+            const count = Math.min(drawCount, selectedStudents.length);
+            const shuffled = selectedStudents.sort(() => 0.5 - Math.random()).slice(0, count);
+            document.getElementById('multiDrawResult').innerText = shuffled.join(", ");
+        }
+
+        function renderHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = historyRecords.map(record => {
+        // 假设 record.time 是 UTC 时间
+        const utcDate = new Date(record.time);  // 这是一个 UTC 时间（例如 ISO 8601 格式）
+        
+        // 使用 .toLocaleString() 方法将其转换为本地时间
+        const formattedTime = utcDate.toLocaleString();  // 转换为本地时区时间
+
+                return `
+                    <p>
+                        时间: ${formattedTime} <br>
+                        正常: ${record.normal} <br>
+                        请假: ${record.leave.join(', ')} <br>
+                        迟到: ${record.late.join(', ')} 
+                    </p>`;
+            }).join('');
+        }
+
+        function copyHistory() {
+            const historyText = historyRecords.map(record => {
+        // 假设 record.time 是 UTC 时间
+        const utcDate = new Date(record.time);
+        
+        // 格式化时间为本地时间
+        const formattedTime = utcDate.toLocaleString();
+
+                return `时间: ${formattedTime}\n正常: ${record.normal}\n请假: ${record.leave.join(', ')}\n迟到: ${record.late.join(', ')}\n\n`;
+            }).join('');
+            navigator.clipboard.writeText(historyText);
+        }
+
+        function showCustomTemplate() {
+            const templateArea = document.getElementById('templateArea');
+            const template = historyRecords.map(record => {
+                return `${record.time}\n正常: ${record.normal}\n请假: ${record.leave.join(', ')}\n迟到: ${record.late.join(', ')}\n\n`;
+            }).join('');
+            templateArea.value = template;
+        }
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            alert("已复制到剪贴板！");
+        }
+    </script>
+</body>
+</html>
